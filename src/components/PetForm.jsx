@@ -1,22 +1,15 @@
-import { useState } from 'react'
+﻿import { useState } from 'react'
+import { useNavigate } from 'react-router'
 import { emptyPet } from '../data/demoPet'
+import { createPet } from '../services/petService'
 
-function fileToDataUrl(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.onload = () => resolve(reader.result)
-    reader.onerror = () => reject(new Error('No se pudo leer la imagen.'))
-    reader.readAsDataURL(file)
-  })
-}
-
-function PetForm({ initialData, onSave }) {
-  const [formData, setFormData] = useState(() => ({
-    ...emptyPet,
-    ...(initialData || {}),
-  }))
-  const [errorMessage, setErrorMessage] = useState('')
+function PetForm() {
+  const navigate = useNavigate()
+  const [formData, setFormData] = useState(() => ({ ...emptyPet }))
+  const [imageFile, setImageFile] = useState(null)
   const [photoName, setPhotoName] = useState('')
+  const [errorMessage, setErrorMessage] = useState('')
+  const [isSaving, setIsSaving] = useState(false)
 
   const updateField = (field) => (event) => {
     setFormData((prev) => ({
@@ -25,34 +18,30 @@ function PetForm({ initialData, onSave }) {
     }))
   }
 
-  const handlePhotoChange = async (event) => {
+  const handlePhotoChange = (event) => {
     const file = event.target.files?.[0]
     if (!file) {
-      setFormData((prev) => ({ ...prev, foto: '' }))
+      setImageFile(null)
       setPhotoName('')
       return
     }
 
     if (!file.type.startsWith('image/')) {
       setErrorMessage('Selecciona un archivo de imagen valido.')
+      setImageFile(null)
+      setPhotoName('')
       return
     }
 
-    try {
-      const foto = await fileToDataUrl(file)
-      setFormData((prev) => ({ ...prev, foto }))
-      setPhotoName(file.name)
-      setErrorMessage('')
-    } catch {
-      setErrorMessage('No se pudo cargar la foto. Intenta de nuevo.')
-    }
+    setImageFile(file)
+    setPhotoName(file.name)
+    setErrorMessage('')
   }
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault()
 
     const payload = {
-      foto: formData.foto,
       nombre: formData.nombre.trim(),
       raza: formData.raza.trim(),
       edad: formData.edad.trim(),
@@ -61,13 +50,25 @@ function PetForm({ initialData, onSave }) {
     }
 
     const hasMissingField = Object.values(payload).some((value) => !value)
-    if (hasMissingField) {
-      setErrorMessage('Completa todos los campos antes de guardar.')
+    if (hasMissingField || !imageFile) {
+      setErrorMessage('Completa todos los campos y sube una foto.')
       return
     }
 
-    setErrorMessage('')
-    onSave(payload)
+    try {
+      setIsSaving(true)
+      setErrorMessage('')
+      const createdPet = await createPet(payload, imageFile)
+      navigate(`/mascota/${createdPet.id}`)
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : 'No se pudo registrar la mascota. Intenta de nuevo.',
+      )
+    } finally {
+      setIsSaving(false)
+    }
   }
 
   return (
@@ -84,7 +85,8 @@ function PetForm({ initialData, onSave }) {
           type="file"
           accept="image/*"
           onChange={handlePhotoChange}
-          className="block w-full rounded-xl border border-blue-200 bg-blue-50/50 px-3 py-2 text-sm text-slate-700 file:mr-4 file:rounded-lg file:border-0 file:bg-blue-600 file:px-3 file:py-2 file:text-sm file:font-medium file:text-white hover:file:bg-blue-700"
+          disabled={isSaving}
+          className="block w-full rounded-xl border border-blue-200 bg-blue-50/50 px-3 py-2 text-sm text-slate-700 file:mr-4 file:rounded-lg file:border-0 file:bg-blue-600 file:px-3 file:py-2 file:text-sm file:font-medium file:text-white hover:file:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
         />
         <p className="text-xs text-slate-500">
           {photoName || 'Sube una foto clara para la pagina publica.'}
@@ -105,7 +107,8 @@ function PetForm({ initialData, onSave }) {
             value={formData.nombre}
             onChange={updateField('nombre')}
             placeholder="Ej: Kira"
-            className="w-full rounded-xl border border-blue-200 bg-white px-4 py-3 text-sm text-slate-800 shadow-sm outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-200"
+            disabled={isSaving}
+            className="w-full rounded-xl border border-blue-200 bg-white px-4 py-3 text-sm text-slate-800 shadow-sm outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-200 disabled:cursor-not-allowed disabled:bg-slate-100"
           />
         </div>
 
@@ -122,7 +125,8 @@ function PetForm({ initialData, onSave }) {
             value={formData.raza}
             onChange={updateField('raza')}
             placeholder="Ej: Golden Retriever"
-            className="w-full rounded-xl border border-blue-200 bg-white px-4 py-3 text-sm text-slate-800 shadow-sm outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-200"
+            disabled={isSaving}
+            className="w-full rounded-xl border border-blue-200 bg-white px-4 py-3 text-sm text-slate-800 shadow-sm outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-200 disabled:cursor-not-allowed disabled:bg-slate-100"
           />
         </div>
 
@@ -139,7 +143,8 @@ function PetForm({ initialData, onSave }) {
             value={formData.edad}
             onChange={updateField('edad')}
             placeholder="Ej: 4 anios"
-            className="w-full rounded-xl border border-blue-200 bg-white px-4 py-3 text-sm text-slate-800 shadow-sm outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-200"
+            disabled={isSaving}
+            className="w-full rounded-xl border border-blue-200 bg-white px-4 py-3 text-sm text-slate-800 shadow-sm outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-200 disabled:cursor-not-allowed disabled:bg-slate-100"
           />
         </div>
 
@@ -156,7 +161,8 @@ function PetForm({ initialData, onSave }) {
             value={formData.nombreDueno}
             onChange={updateField('nombreDueno')}
             placeholder="Ej: Ana Torres"
-            className="w-full rounded-xl border border-blue-200 bg-white px-4 py-3 text-sm text-slate-800 shadow-sm outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-200"
+            disabled={isSaving}
+            className="w-full rounded-xl border border-blue-200 bg-white px-4 py-3 text-sm text-slate-800 shadow-sm outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-200 disabled:cursor-not-allowed disabled:bg-slate-100"
           />
         </div>
       </div>
@@ -173,8 +179,9 @@ function PetForm({ initialData, onSave }) {
           type="tel"
           value={formData.telefono}
           onChange={updateField('telefono')}
-          placeholder="Ej: 3001234567"
-          className="w-full rounded-xl border border-blue-200 bg-white px-4 py-3 text-sm text-slate-800 shadow-sm outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-200"
+          placeholder="Ej: 0985415236"
+          disabled={isSaving}
+          className="w-full rounded-xl border border-blue-200 bg-white px-4 py-3 text-sm text-slate-800 shadow-sm outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-200 disabled:cursor-not-allowed disabled:bg-slate-100"
         />
       </div>
 
@@ -186,9 +193,10 @@ function PetForm({ initialData, onSave }) {
 
       <button
         type="submit"
-        className="w-full rounded-xl bg-orange-500 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-orange-500/30 transition hover:bg-orange-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-500 sm:w-auto"
+        disabled={isSaving}
+        className="w-full rounded-xl bg-orange-500 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-orange-500/30 transition hover:bg-orange-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-500 disabled:cursor-not-allowed disabled:bg-orange-300 sm:w-auto"
       >
-        Guardar y ver landing publica
+        {isSaving ? 'Guardando...' : 'Guardar y ver landing publica'}
       </button>
     </form>
   )

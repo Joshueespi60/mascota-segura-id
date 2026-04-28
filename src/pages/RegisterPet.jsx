@@ -1,14 +1,7 @@
-import { Link, useNavigate } from 'react-router'
+import { Link } from 'react-router'
 import PetForm from '../components/PetForm'
 
-function RegisterPet({ initialData, onSave }) {
-  const navigate = useNavigate()
-
-  const handleSave = (formData) => {
-    const savedPet = onSave(formData)
-    navigate(`/mascota/${savedPet.id}`)
-  }
-
+function RegisterPet() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-orange-50 px-4 py-8 sm:px-6">
       <main className="mx-auto w-full max-w-3xl">
@@ -32,7 +25,7 @@ function RegisterPet({ initialData, onSave }) {
             Completa la informacion para crear la pagina publica de tu mascota.
           </p>
           <div className="mt-6">
-            <PetForm initialData={initialData} onSave={handleSave} />
+            <PetForm />
           </div>
         </section>
       </main>

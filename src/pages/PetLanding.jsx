@@ -1,11 +1,61 @@
+﻿import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router'
 import PetPublicCard from '../components/PetPublicCard'
 import QRCodeBox from '../components/QRCodeBox'
-import { findPetById } from '../data/petsStorage'
+import { getPetById } from '../services/petService'
 
 function PetLanding() {
   const { id } = useParams()
-  const pet = findPetById(id)
+  const [pet, setPet] = useState(null)
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    let isMounted = true
+
+    const loadPet = async () => {
+      if (!id) {
+        if (isMounted) {
+          setPet(null)
+          setIsLoading(false)
+        }
+        return
+      }
+
+      try {
+        setIsLoading(true)
+        const foundPet = await getPetById(id)
+        if (isMounted) {
+          setPet(foundPet)
+        }
+      } catch {
+        if (isMounted) {
+          setPet(null)
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false)
+        }
+      }
+    }
+
+    loadPet()
+
+    return () => {
+      isMounted = false
+    }
+  }, [id])
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-orange-50 px-4 py-8 sm:px-6">
+        <main className="mx-auto w-full max-w-3xl">
+          <div className="rounded-3xl border border-blue-100 bg-white p-8 text-center shadow-xl shadow-blue-900/10">
+            <p className="text-base font-semibold text-slate-700">Cargando mascota...</p>
+          </div>
+        </main>
+      </div>
+    )
+  }
 
   if (!pet || !pet.id) {
     return (
