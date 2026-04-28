@@ -1,4 +1,5 @@
 import { Link } from 'react-router'
+import mascotaLogo from '../assets/mascota-logo.png'
 
 function Home() {
   return (
@@ -29,23 +30,11 @@ function Home() {
 
           <div className="rounded-3xl border border-blue-100 bg-white/90 p-6 shadow-xl shadow-blue-900/10 backdrop-blur sm:p-8">
             <div className="space-y-5">
-              <div className="grid grid-cols-5 gap-2 rounded-2xl bg-blue-950 p-5">
-                <div className="h-8 rounded bg-white"></div>
-                <div className="h-8 rounded bg-orange-400"></div>
-                <div className="h-8 rounded bg-white"></div>
-                <div className="h-8 rounded bg-blue-400"></div>
-                <div className="h-8 rounded bg-white"></div>
-                <div className="h-8 rounded bg-orange-300"></div>
-                <div className="h-8 rounded bg-white"></div>
-                <div className="h-8 rounded bg-blue-300"></div>
-                <div className="h-8 rounded bg-white"></div>
-                <div className="h-8 rounded bg-orange-500"></div>
-                <div className="h-8 rounded bg-white"></div>
-                <div className="h-8 rounded bg-blue-500"></div>
-                <div className="h-8 rounded bg-white"></div>
-                <div className="h-8 rounded bg-orange-400"></div>
-                <div className="h-8 rounded bg-white"></div>
-              </div>
+              <img
+                src={mascotaLogo}
+                alt="MascotaSegura ID"
+                className="mx-auto max-h-56 w-full max-w-sm rounded-2xl object-contain"
+              />
               <div className="rounded-2xl bg-blue-50 p-5">
                 <h2 className="text-xl font-bold text-blue-900">
                   Perfil publico por QR
