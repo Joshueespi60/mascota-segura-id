@@ -1,4 +1,4 @@
-export function normalizeEcuadorPhone(phone) {
+﻿export function normalizeEcuadorPhone(phone) {
   const onlyDigits = String(phone || '').replace(/\D/g, '')
 
   if (!onlyDigits) {

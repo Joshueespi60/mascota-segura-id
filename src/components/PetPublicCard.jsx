@@ -50,11 +50,11 @@ function PetPublicCard({ pet }) {
 
         <section className="space-y-3">
           <h2 className="text-lg font-bold text-brand-text">
-            Informacion del duenio
+            Información del dueño
           </h2>
           <div className="grid gap-3 sm:grid-cols-2">
             <DetailItem label="Nombre" value={pet.nombreDueno} />
-            <DetailItem label="Telefono" value={pet.telefono} />
+            <DetailItem label="Teléfono" value={pet.telefono} />
           </div>
         </section>
 

@@ -27,7 +27,7 @@ function PetForm() {
     }
 
     if (!file.type.startsWith('image/')) {
-      setErrorMessage('Selecciona un archivo de imagen valido.')
+      setErrorMessage('Selecciona un archivo de imagen válido.')
       setImageFile(null)
       setPhotoName('')
       return
@@ -89,7 +89,7 @@ function PetForm() {
           className="block w-full rounded-xl border border-brand-secondary/45 bg-brand-bg px-3 py-2 text-sm text-brand-text/90 file:mr-4 file:rounded-lg file:border-0 file:bg-brand-primary file:px-3 file:py-2 file:text-sm file:font-medium file:text-white hover:file:bg-[#A24F30] disabled:cursor-not-allowed disabled:opacity-60"
         />
         <p className="text-xs text-brand-text/70">
-          {photoName || 'Sube una foto clara para la pagina publica.'}
+          {photoName || 'Sube una foto clara para la página pública.'}
         </p>
       </div>
 
@@ -142,7 +142,7 @@ function PetForm() {
             type="text"
             value={formData.edad}
             onChange={updateField('edad')}
-            placeholder="Ej: 4 anios"
+            placeholder="Ej: 4 años"
             disabled={isSaving}
             className="w-full rounded-xl border border-brand-secondary/45 bg-white px-4 py-3 text-sm text-brand-text shadow-sm outline-none transition focus:border-brand-primary focus:ring-2 focus:ring-brand-secondary/45 disabled:cursor-not-allowed disabled:bg-brand-bg"
           />
@@ -153,7 +153,7 @@ function PetForm() {
             htmlFor="owner-name"
             className="block text-sm font-semibold text-brand-text/90"
           >
-            Nombre del duenio
+            Nombre del dueño
           </label>
           <input
             id="owner-name"
@@ -172,7 +172,7 @@ function PetForm() {
           htmlFor="owner-phone"
           className="block text-sm font-semibold text-brand-text/90"
         >
-          Telefono de contacto
+          Teléfono de contacto
         </label>
         <input
           id="owner-phone"
@@ -196,7 +196,7 @@ function PetForm() {
         disabled={isSaving}
         className="w-full rounded-xl bg-brand-primary px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-brand-primary/30 transition hover:bg-[#A24F30] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-primary disabled:cursor-not-allowed disabled:bg-brand-secondary sm:w-auto"
       >
-        {isSaving ? 'Guardando...' : 'Guardar y ver landing publica'}
+        {isSaving ? 'Guardando...' : 'Guardar y ver página pública'}
       </button>
     </form>
   )

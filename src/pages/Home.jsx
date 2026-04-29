@@ -15,8 +15,8 @@ function Home() {
                 Encuentra. Protege. Conecta.
               </h1>
               <p className="mx-auto max-w-xl text-base leading-relaxed text-brand-text/80 lg:mx-0 sm:text-lg">
-                Registra a tu mascota en minutos y genera una pagina publica con
-                codigo QR para que cualquier persona pueda ayudarte a reunirla
+                Registra a tu mascota en minutos y genera una página pública con
+                código QR para que cualquier persona pueda ayudarte a reunirla
                 contigo si se pierde.
               </p>
             </div>
@@ -37,11 +37,11 @@ function Home() {
               />
               <div className="rounded-2xl bg-brand-bg p-5">
                 <h2 className="text-xl font-bold text-brand-text">
-                  Perfil publico por QR
+                  Perfil público por QR
                 </h2>
                 <p className="mt-2 text-sm leading-relaxed text-brand-text/80">
-                  Comparte identificacion, contacto del tutor y datos clave de
-                  tu mascota desde una pagina segura, clara y facil de acceder.
+                  Comparte identificación, contacto del tutor y datos clave de
+                  tu mascota desde una página segura, clara y fácil de acceder.
                 </p>
               </div>
             </div>

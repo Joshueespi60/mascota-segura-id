@@ -31,7 +31,7 @@ function QRCodeBox({ pet }) {
 
   return (
     <section className="mt-6 rounded-3xl border border-brand-secondary/30 bg-white p-5 shadow-lg shadow-brand-secondary/20 sm:p-6">
-      <h2 className="text-lg font-bold text-brand-text">Codigo QR publico</h2>
+      <h2 className="text-lg font-bold text-brand-text">Código QR público</h2>
       <div className="mt-4 flex justify-center rounded-2xl border border-brand-secondary/25 bg-brand-bg p-6">
         <QRCodeSVG
           value={publicUrl}

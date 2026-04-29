@@ -22,7 +22,7 @@ function RegisterPet() {
             Registrar mascota
           </h1>
           <p className="mt-2 text-sm leading-relaxed text-brand-text/75 sm:text-base">
-            Completa la informacion para crear la pagina publica de tu mascota.
+            Completa la información para crear la página pública de tu mascota.
           </p>
           <div className="mt-6">
             <PetForm />
