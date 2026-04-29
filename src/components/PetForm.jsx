@@ -76,7 +76,7 @@ function PetForm() {
       <div className="space-y-2">
         <label
           htmlFor="pet-photo"
-          className="block text-sm font-semibold text-slate-700"
+          className="block text-sm font-semibold text-brand-text/90"
         >
           Foto de la mascota
         </label>
@@ -86,9 +86,9 @@ function PetForm() {
           accept="image/*"
           onChange={handlePhotoChange}
           disabled={isSaving}
-          className="block w-full rounded-xl border border-blue-200 bg-blue-50/50 px-3 py-2 text-sm text-slate-700 file:mr-4 file:rounded-lg file:border-0 file:bg-blue-600 file:px-3 file:py-2 file:text-sm file:font-medium file:text-white hover:file:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+          className="block w-full rounded-xl border border-brand-secondary/45 bg-brand-bg px-3 py-2 text-sm text-brand-text/90 file:mr-4 file:rounded-lg file:border-0 file:bg-brand-primary file:px-3 file:py-2 file:text-sm file:font-medium file:text-white hover:file:bg-[#A24F30] disabled:cursor-not-allowed disabled:opacity-60"
         />
-        <p className="text-xs text-slate-500">
+        <p className="text-xs text-brand-text/70">
           {photoName || 'Sube una foto clara para la pagina publica.'}
         </p>
       </div>
@@ -97,7 +97,7 @@ function PetForm() {
         <div className="space-y-2">
           <label
             htmlFor="pet-name"
-            className="block text-sm font-semibold text-slate-700"
+            className="block text-sm font-semibold text-brand-text/90"
           >
             Nombre
           </label>
@@ -108,14 +108,14 @@ function PetForm() {
             onChange={updateField('nombre')}
             placeholder="Ej: Kira"
             disabled={isSaving}
-            className="w-full rounded-xl border border-blue-200 bg-white px-4 py-3 text-sm text-slate-800 shadow-sm outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-200 disabled:cursor-not-allowed disabled:bg-slate-100"
+            className="w-full rounded-xl border border-brand-secondary/45 bg-white px-4 py-3 text-sm text-brand-text shadow-sm outline-none transition focus:border-brand-primary focus:ring-2 focus:ring-brand-secondary/45 disabled:cursor-not-allowed disabled:bg-brand-bg"
           />
         </div>
 
         <div className="space-y-2">
           <label
             htmlFor="pet-breed"
-            className="block text-sm font-semibold text-slate-700"
+            className="block text-sm font-semibold text-brand-text/90"
           >
             Raza
           </label>
@@ -126,14 +126,14 @@ function PetForm() {
             onChange={updateField('raza')}
             placeholder="Ej: Golden Retriever"
             disabled={isSaving}
-            className="w-full rounded-xl border border-blue-200 bg-white px-4 py-3 text-sm text-slate-800 shadow-sm outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-200 disabled:cursor-not-allowed disabled:bg-slate-100"
+            className="w-full rounded-xl border border-brand-secondary/45 bg-white px-4 py-3 text-sm text-brand-text shadow-sm outline-none transition focus:border-brand-primary focus:ring-2 focus:ring-brand-secondary/45 disabled:cursor-not-allowed disabled:bg-brand-bg"
           />
         </div>
 
         <div className="space-y-2">
           <label
             htmlFor="pet-age"
-            className="block text-sm font-semibold text-slate-700"
+            className="block text-sm font-semibold text-brand-text/90"
           >
             Edad
           </label>
@@ -144,14 +144,14 @@ function PetForm() {
             onChange={updateField('edad')}
             placeholder="Ej: 4 anios"
             disabled={isSaving}
-            className="w-full rounded-xl border border-blue-200 bg-white px-4 py-3 text-sm text-slate-800 shadow-sm outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-200 disabled:cursor-not-allowed disabled:bg-slate-100"
+            className="w-full rounded-xl border border-brand-secondary/45 bg-white px-4 py-3 text-sm text-brand-text shadow-sm outline-none transition focus:border-brand-primary focus:ring-2 focus:ring-brand-secondary/45 disabled:cursor-not-allowed disabled:bg-brand-bg"
           />
         </div>
 
         <div className="space-y-2">
           <label
             htmlFor="owner-name"
-            className="block text-sm font-semibold text-slate-700"
+            className="block text-sm font-semibold text-brand-text/90"
           >
             Nombre del duenio
           </label>
@@ -162,7 +162,7 @@ function PetForm() {
             onChange={updateField('nombreDueno')}
             placeholder="Ej: Ana Torres"
             disabled={isSaving}
-            className="w-full rounded-xl border border-blue-200 bg-white px-4 py-3 text-sm text-slate-800 shadow-sm outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-200 disabled:cursor-not-allowed disabled:bg-slate-100"
+            className="w-full rounded-xl border border-brand-secondary/45 bg-white px-4 py-3 text-sm text-brand-text shadow-sm outline-none transition focus:border-brand-primary focus:ring-2 focus:ring-brand-secondary/45 disabled:cursor-not-allowed disabled:bg-brand-bg"
           />
         </div>
       </div>
@@ -170,7 +170,7 @@ function PetForm() {
       <div className="space-y-2">
         <label
           htmlFor="owner-phone"
-          className="block text-sm font-semibold text-slate-700"
+          className="block text-sm font-semibold text-brand-text/90"
         >
           Telefono de contacto
         </label>
@@ -181,12 +181,12 @@ function PetForm() {
           onChange={updateField('telefono')}
           placeholder="Ej: 0985415236"
           disabled={isSaving}
-          className="w-full rounded-xl border border-blue-200 bg-white px-4 py-3 text-sm text-slate-800 shadow-sm outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-200 disabled:cursor-not-allowed disabled:bg-slate-100"
+          className="w-full rounded-xl border border-brand-secondary/45 bg-white px-4 py-3 text-sm text-brand-text shadow-sm outline-none transition focus:border-brand-primary focus:ring-2 focus:ring-brand-secondary/45 disabled:cursor-not-allowed disabled:bg-brand-bg"
         />
       </div>
 
       {errorMessage ? (
-        <p className="rounded-lg border border-orange-200 bg-orange-50 px-4 py-2 text-sm font-medium text-orange-700">
+        <p className="rounded-lg border border-brand-secondary/45 bg-brand-bg px-4 py-2 text-sm font-medium text-brand-primary">
           {errorMessage}
         </p>
       ) : null}
@@ -194,7 +194,7 @@ function PetForm() {
       <button
         type="submit"
         disabled={isSaving}
-        className="w-full rounded-xl bg-orange-500 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-orange-500/30 transition hover:bg-orange-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-500 disabled:cursor-not-allowed disabled:bg-orange-300 sm:w-auto"
+        className="w-full rounded-xl bg-brand-primary px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-brand-primary/30 transition hover:bg-[#A24F30] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-primary disabled:cursor-not-allowed disabled:bg-brand-secondary sm:w-auto"
       >
         {isSaving ? 'Guardando...' : 'Guardar y ver landing publica'}
       </button>

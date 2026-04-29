@@ -11,7 +11,7 @@ function ContactButtons({ telefono, nombreMascota }) {
     <div className="grid gap-3 sm:grid-cols-2">
       <a
         href={telHref}
-        className="inline-flex items-center justify-center rounded-xl bg-blue-700 px-4 py-3 text-sm font-semibold text-white transition hover:bg-blue-800"
+        className="inline-flex items-center justify-center rounded-xl bg-brand-primary px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#A24F30]"
       >
         Llamar ahora
       </a>
@@ -19,7 +19,7 @@ function ContactButtons({ telefono, nombreMascota }) {
         href={whatsappHref}
         target="_blank"
         rel="noreferrer"
-        className="inline-flex items-center justify-center rounded-xl bg-orange-500 px-4 py-3 text-sm font-semibold text-white transition hover:bg-orange-600"
+        className="inline-flex items-center justify-center rounded-xl bg-brand-secondary px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#D98A58]"
       >
         WhatsApp
       </a>

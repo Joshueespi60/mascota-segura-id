@@ -30,27 +30,27 @@ function QRCodeBox({ pet }) {
   }
 
   return (
-    <section className="mt-6 rounded-3xl border border-orange-100 bg-white p-5 shadow-lg shadow-orange-200/40 sm:p-6">
-      <h2 className="text-lg font-bold text-slate-900">Codigo QR publico</h2>
-      <div className="mt-4 flex justify-center rounded-2xl border border-slate-200 bg-white p-6">
+    <section className="mt-6 rounded-3xl border border-brand-secondary/30 bg-white p-5 shadow-lg shadow-brand-secondary/20 sm:p-6">
+      <h2 className="text-lg font-bold text-brand-text">Codigo QR publico</h2>
+      <div className="mt-4 flex justify-center rounded-2xl border border-brand-secondary/25 bg-brand-bg p-6">
         <QRCodeSVG
           value={publicUrl}
           size={240}
-          bgColor="#ffffff"
-          fgColor="#000000"
+          bgColor="#FFF8F2"
+          fgColor="#4A2E24"
           level="H"
           includeMargin
         />
       </div>
-      <p className="mt-4 text-center text-sm leading-relaxed text-slate-600">
+      <p className="mt-4 text-center text-sm leading-relaxed text-brand-text/75">
         Escanea este código para ver el perfil público de la mascota.
       </p>
-      <p className="mt-2 break-all text-center text-xs text-slate-500">{publicUrl}</p>
+      <p className="mt-2 break-all text-center text-xs text-brand-text/60">{publicUrl}</p>
       <div className="mt-4 flex justify-center">
         <button
           type="button"
           onClick={handleCopyLink}
-          className="rounded-lg border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-semibold text-blue-700 transition hover:bg-blue-100"
+          className="rounded-lg border border-brand-secondary/45 bg-brand-bg px-4 py-2 text-sm font-semibold text-brand-primary transition hover:bg-brand-secondary/20"
         >
           {copyState === 'copied'
             ? 'Enlace copiado'
