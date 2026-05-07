@@ -1,13 +1,13 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router'
+import PetForm from '../components/PetForm'
 import PetPublicCard from '../components/PetPublicCard'
 import QRStatusBadge from '../components/QRStatusBadge'
-import QRWelcome from './QRWelcome'
 import { getPetByQrId } from '../services/petService'
 import { getQrCodeById } from '../services/qrService'
 import { normalizeQrId } from '../utils/qrId'
 
-function QRResolver() {
+function QRRegister() {
   const { qrId: rawQrId } = useParams()
   const qrId = useMemo(() => normalizeQrId(rawQrId), [rawQrId])
 
@@ -49,7 +49,7 @@ function QRResolver() {
         setQrCode(qrRecord)
 
         if (qrRecord.status === 'available') {
-          setView('available')
+          setView('register')
           return
         }
 
@@ -103,6 +103,7 @@ function QRResolver() {
   }, [qrId])
 
   const collarLabel = qrCode?.qrId || qrId || 'QR-UNKNOWN'
+  const encodedQrId = encodeURIComponent(collarLabel)
 
   if (isLoading) {
     return (
@@ -121,28 +122,43 @@ function QRResolver() {
       <main className="mx-auto w-full max-w-3xl">
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
           <Link
-            to="/"
+            to={`/qr/${encodedQrId}`}
             className="rounded-lg border border-brand-secondary/45 bg-white px-4 py-2 text-sm font-medium text-brand-primary transition hover:border-brand-primary/60 hover:bg-brand-bg"
           >
-            Inicio
+            Volver al inicio QR
           </Link>
           <span className="rounded-full border border-brand-secondary/45 bg-white px-4 py-1 text-xs font-semibold uppercase tracking-wide text-brand-primary">
             Collar {collarLabel}
           </span>
         </div>
 
-        {view === 'available' ? (
-          <QRWelcome qrId={collarLabel} status={qrCode?.status} />
+        {view === 'register' ? (
+          <section className="rounded-3xl border border-brand-secondary/30 bg-white p-6 shadow-xl shadow-brand-text/10 sm:p-8">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <h1 className="text-2xl font-extrabold text-brand-text sm:text-3xl">
+                Registrar mascota en este collar
+              </h1>
+              <QRStatusBadge status={qrCode?.status} />
+            </div>
+            <p className="mt-2 text-sm leading-relaxed text-brand-text/75 sm:text-base">
+              Completa el formulario para vincular la mascota al QR {collarLabel}.
+            </p>
+            <div className="mt-6">
+              <PetForm qrId={qrId} />
+            </div>
+          </section>
         ) : null}
 
         {view === 'registered' && pet ? (
           <>
             <div className="mb-5 rounded-2xl border border-brand-secondary/35 bg-white p-4 text-sm text-brand-text/85 shadow-lg shadow-brand-text/5">
               <div className="flex flex-wrap items-center justify-between gap-3">
-                <p className="font-semibold text-brand-text">QR vinculado correctamente</p>
+                <p className="font-semibold text-brand-text">Este QR ya fue registrado</p>
                 <QRStatusBadge status={qrCode?.status} />
               </div>
-              <p className="mt-1">Este collar ya esta asociado a la mascota registrada.</p>
+              <p className="mt-1">
+                Ya existe una mascota vinculada a este collar, por lo que no se puede registrar otra.
+              </p>
             </div>
             <PetPublicCard pet={pet} />
           </>
@@ -178,7 +194,7 @@ function QRResolver() {
             </div>
             <h1 className="text-2xl font-extrabold text-brand-text">QR desactivado</h1>
             <p className="mt-3 text-sm text-brand-text/75 sm:text-base">
-              Este collar fue desactivado y no acepta nuevos registros.
+              Este collar fue desactivado y no acepta registros.
             </p>
           </section>
         ) : null}
@@ -208,4 +224,4 @@ function QRResolver() {
   )
 }
 
-export default QRResolver
+export default QRRegister

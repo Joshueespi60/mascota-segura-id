@@ -1,10 +1,18 @@
-﻿import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router'
 import { QRCodeCanvas, QRCodeSVG } from 'qrcode.react'
+import Pagination from '../components/Pagination'
 import QRStatusBadge from '../components/QRStatusBadge'
-import { createQrCode, listQrCodes, markQrAsDisabled } from '../services/qrService'
+import {
+  createQrCode,
+  deleteQrCode,
+  listQrCodes,
+  markQrAsAvailable,
+  markQrAsDisabled,
+} from '../services/qrService'
 
 const ADMIN_SESSION_KEY = 'mascotasegura_admin_qr_unlocked'
+const PAGE_SIZE = 7
 
 function formatDateTime(value) {
   if (!value) {
@@ -50,13 +58,20 @@ function AdminQRGenerator() {
 
   const [qrCodes, setQrCodes] = useState([])
   const [selectedQrId, setSelectedQrId] = useState('')
+  const [currentPage, setCurrentPage] = useState(1)
+
   const [isLoading, setIsLoading] = useState(true)
   const [loadError, setLoadError] = useState('')
+
   const [isGenerating, setIsGenerating] = useState(false)
   const [createError, setCreateError] = useState('')
+
   const [copyState, setCopyState] = useState({ qrId: '', status: 'idle' })
   const [downloadError, setDownloadError] = useState('')
-  const [isDisabling, setIsDisabling] = useState('')
+
+  const [isStatusUpdating, setIsStatusUpdating] = useState('')
+  const [isDeleting, setIsDeleting] = useState('')
+  const [inventoryMessage, setInventoryMessage] = useState({ type: '', text: '' })
 
   useEffect(() => {
     if (!isUnlocked) {
@@ -76,6 +91,7 @@ function AdminQRGenerator() {
         }
 
         setQrCodes(data)
+        setCurrentPage(1)
         setSelectedQrId((current) => {
           if (current && data.some((item) => item.qrId === current)) {
             return current
@@ -105,12 +121,35 @@ function AdminQRGenerator() {
     }
   }, [isUnlocked])
 
+  const totalPages = Math.max(1, Math.ceil(qrCodes.length / PAGE_SIZE))
+
+  useEffect(() => {
+    setCurrentPage((prev) => Math.min(prev, totalPages))
+  }, [totalPages])
+
+  const pagedQrCodes = useMemo(() => {
+    const start = (currentPage - 1) * PAGE_SIZE
+    return qrCodes.slice(start, start + PAGE_SIZE)
+  }, [currentPage, qrCodes])
+
   const selectedQr = useMemo(
     () => qrCodes.find((item) => item.qrId === selectedQrId) || null,
     [qrCodes, selectedQrId],
   )
 
   const selectedQrUrl = selectedQr ? buildQrPublicUrl(selectedQr.qrId) : ''
+
+  const setSuccessMessage = (text) => {
+    setInventoryMessage({ type: 'success', text })
+  }
+
+  const setErrorMessage = (text) => {
+    setInventoryMessage({ type: 'error', text })
+  }
+
+  const clearInventoryMessage = () => {
+    setInventoryMessage({ type: '', text: '' })
+  }
 
   const unlockWithPin = (event) => {
     event.preventDefault()
@@ -142,13 +181,16 @@ function AdminQRGenerator() {
     try {
       setIsGenerating(true)
       setCreateError('')
+      clearInventoryMessage()
       const newQr = await createQrCode()
 
       setQrCodes((current) => [newQr, ...current.filter((item) => item.qrId !== newQr.qrId)])
       setSelectedQrId(newQr.qrId)
+      setCurrentPage(1)
+      setSuccessMessage(`QR ${newQr.qrId} creado correctamente.`)
     } catch (error) {
       setCreateError(
-        error instanceof Error ? error.message : 'No se pudo crear el código QR.',
+        error instanceof Error ? error.message : 'No se pudo crear el codigo QR.',
       )
     } finally {
       setIsGenerating(false)
@@ -228,20 +270,85 @@ function AdminQRGenerator() {
 
   const handleDisableQr = async (qrId) => {
     try {
-      setIsDisabling(qrId)
+      clearInventoryMessage()
+      setIsStatusUpdating(qrId)
       const updatedQr = await markQrAsDisabled(qrId)
 
       setQrCodes((current) =>
         current.map((item) => (item.qrId === qrId ? updatedQr : item)),
       )
+      setSuccessMessage(`QR ${qrId} desactivado correctamente.`)
     } catch (error) {
-      setLoadError(
+      setErrorMessage(
         error instanceof Error
           ? error.message
-          : 'No se pudo desactivar el código QR.',
+          : 'No se pudo desactivar el codigo QR.',
       )
     } finally {
-      setIsDisabling('')
+      setIsStatusUpdating('')
+    }
+  }
+
+  const handleEnableQr = async (qrId) => {
+    try {
+      clearInventoryMessage()
+      setIsStatusUpdating(qrId)
+      const updatedQr = await markQrAsAvailable(qrId)
+
+      setQrCodes((current) =>
+        current.map((item) => (item.qrId === qrId ? updatedQr : item)),
+      )
+      setSuccessMessage(`QR ${qrId} activado correctamente.`)
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : 'No se pudo activar el codigo QR.',
+      )
+    } finally {
+      setIsStatusUpdating('')
+    }
+  }
+
+  const handleDeleteQr = async (item) => {
+    if (item.status === 'registered') {
+      setErrorMessage(
+        'Este QR ya tiene una mascota registrada. Para eliminarlo primero debes desvincular o eliminar el registro de la mascota.',
+      )
+      return
+    }
+
+    const hasConfirmed = window.confirm(
+      'Seguro que quieres eliminar este QR? Esta accion no se puede deshacer.',
+    )
+
+    if (!hasConfirmed) {
+      return
+    }
+
+    try {
+      clearInventoryMessage()
+      setIsDeleting(item.qrId)
+      await deleteQrCode(item.qrId)
+
+      setQrCodes((current) => {
+        const next = current.filter((code) => code.qrId !== item.qrId)
+        if (selectedQrId === item.qrId) {
+          setSelectedQrId(next[0]?.qrId || '')
+        }
+
+        return next
+      })
+
+      setSuccessMessage(`QR ${item.qrId} eliminado correctamente.`)
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : 'No se pudo eliminar el codigo QR.',
+      )
+    } finally {
+      setIsDeleting('')
     }
   }
 
@@ -252,7 +359,7 @@ function AdminQRGenerator() {
           <section className="rounded-3xl border border-brand-secondary/30 bg-white p-6 shadow-xl shadow-brand-text/10 sm:p-8">
             <h1 className="text-2xl font-extrabold text-brand-text">Acceso al panel de QR</h1>
             <p className="mt-2 text-sm leading-relaxed text-brand-text/75">
-              Ingresa el PIN de administración para generar y gestionar collares.
+              Ingresa el PIN de administracion para generar y gestionar collares.
             </p>
 
             <form className="mt-6 space-y-4" onSubmit={unlockWithPin}>
@@ -295,7 +402,7 @@ function AdminQRGenerator() {
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
           <div className="space-y-1">
             <h1 className="text-2xl font-extrabold text-brand-text sm:text-3xl">
-              Panel admin de QR únicos
+              Panel admin de QR unicos
             </h1>
             <p className="text-sm text-brand-text/75">
               Genera collares, copia enlaces y monitorea su estado en tiempo real.
@@ -314,7 +421,7 @@ function AdminQRGenerator() {
                 onClick={handleLogout}
                 className="rounded-lg border border-brand-secondary/45 bg-white px-4 py-2 text-sm font-medium text-brand-primary transition hover:border-brand-primary/60 hover:bg-brand-bg"
               >
-                Cerrar sesión
+                Cerrar sesion
               </button>
             ) : null}
           </div>
@@ -322,7 +429,7 @@ function AdminQRGenerator() {
 
         {!requiresPin ? (
           <div className="mb-5 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-            `VITE_ADMIN_QR_PIN` no está configurado. Este panel quedó abierto para entorno local.
+            `VITE_ADMIN_QR_PIN` no esta configurado. Este panel quedo abierto para entorno local.
           </div>
         ) : null}
 
@@ -330,7 +437,7 @@ function AdminQRGenerator() {
           <article className="rounded-3xl border border-brand-secondary/30 bg-white p-6 shadow-xl shadow-brand-text/10">
             <h2 className="text-lg font-bold text-brand-text">Generar nuevo QR</h2>
             <p className="mt-2 text-sm text-brand-text/75">
-              Cada botón crea un ID irrepetible con formato `COLLAR-XXXXXXXXXX`.
+              Cada boton crea un ID irrepetible con formato `COLLAR-XXXXXXXXXX`.
             </p>
 
             <button
@@ -339,7 +446,7 @@ function AdminQRGenerator() {
               disabled={isGenerating}
               className="mt-5 w-full rounded-xl bg-brand-primary px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-brand-primary/30 transition hover:bg-[#A24F30] disabled:cursor-not-allowed disabled:bg-brand-secondary"
             >
-              {isGenerating ? 'Generando...' : 'Generar QR único'}
+              {isGenerating ? 'Generando...' : 'Generar QR unico'}
             </button>
 
             {createError ? (
@@ -414,7 +521,7 @@ function AdminQRGenerator() {
               </div>
             ) : (
               <div className="mt-6 rounded-2xl border border-brand-secondary/35 bg-brand-bg p-4 text-sm text-brand-text/75">
-                Aún no hay QR disponibles. Genera el primero para comenzar.
+                Aun no hay QR disponibles. Genera el primero para comenzar.
               </div>
             )}
           </article>
@@ -433,80 +540,127 @@ function AdminQRGenerator() {
               </p>
             ) : null}
 
+            {inventoryMessage.text ? (
+              <p
+                className={`mt-4 rounded-lg px-4 py-2 text-sm font-medium ${
+                  inventoryMessage.type === 'success'
+                    ? 'border border-emerald-200 bg-emerald-50 text-emerald-700'
+                    : 'border border-brand-secondary/45 bg-brand-bg text-brand-primary'
+                }`}
+              >
+                {inventoryMessage.text}
+              </p>
+            ) : null}
+
             {isLoading ? (
-              <p className="mt-5 text-sm text-brand-text/75">Cargando códigos QR...</p>
+              <p className="mt-5 text-sm text-brand-text/75">Cargando codigos QR...</p>
             ) : null}
 
             {!isLoading && !qrCodes.length ? (
               <p className="mt-5 text-sm text-brand-text/75">
-                No hay registros todavía. Crea el primero desde el panel izquierdo.
+                No hay registros todavia. Crea el primero desde el panel izquierdo.
               </p>
             ) : null}
 
             {!isLoading && qrCodes.length ? (
-              <div className="mt-4 overflow-x-auto">
-                <table className="min-w-full border-separate border-spacing-y-2 text-left text-sm">
-                  <thead>
-                    <tr className="text-xs uppercase tracking-wide text-brand-text/65">
-                      <th className="px-3 py-2">QR ID</th>
-                      <th className="px-3 py-2">Estado</th>
-                      <th className="px-3 py-2">Creado</th>
-                      <th className="px-3 py-2">Registrado</th>
-                      <th className="px-3 py-2 text-right">Acciones</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {qrCodes.map((item) => (
-                      <tr key={item.qrId} className="rounded-xl border border-brand-secondary/20 bg-brand-bg/40">
-                        <td className="rounded-l-xl px-3 py-3 font-semibold text-brand-text">
-                          {item.qrId}
-                        </td>
-                        <td className="px-3 py-3">
-                          <QRStatusBadge status={item.status} />
-                        </td>
-                        <td className="px-3 py-3 text-xs text-brand-text/75">
-                          {formatDateTime(item.createdAt)}
-                        </td>
-                        <td className="px-3 py-3 text-xs text-brand-text/75">
-                          {formatDateTime(item.registeredAt)}
-                        </td>
-                        <td className="rounded-r-xl px-3 py-3">
-                          <div className="flex flex-wrap justify-end gap-2">
-                            <button
-                              type="button"
-                              onClick={() => setSelectedQrId(item.qrId)}
-                              className="rounded-lg border border-brand-secondary/45 bg-white px-3 py-2 text-xs font-semibold text-brand-primary transition hover:bg-brand-secondary/15"
-                            >
-                              Ver QR
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => handleCopyUrl(item.qrId)}
-                              className="rounded-lg border border-brand-secondary/45 bg-white px-3 py-2 text-xs font-semibold text-brand-primary transition hover:bg-brand-secondary/15"
-                            >
-                              {copyState.qrId === item.qrId && copyState.status === 'copied'
-                                ? 'Copiado'
-                                : copyState.qrId === item.qrId && copyState.status === 'error'
-                                  ? 'Error'
-                                  : 'Copiar URL'}
-                            </button>
-                            {item.status !== 'disabled' ? (
+              <>
+                <div className="mt-4 overflow-x-auto">
+                  <table className="min-w-full border-separate border-spacing-y-2 text-left text-sm">
+                    <thead>
+                      <tr className="text-xs uppercase tracking-wide text-brand-text/65">
+                        <th className="px-3 py-2">QR ID</th>
+                        <th className="px-3 py-2">Estado</th>
+                        <th className="px-3 py-2">Creado</th>
+                        <th className="px-3 py-2">Registrado</th>
+                        <th className="px-3 py-2 text-right">Acciones</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {pagedQrCodes.map((item) => (
+                        <tr key={item.qrId} className="rounded-xl border border-brand-secondary/20 bg-brand-bg/40">
+                          <td className="rounded-l-xl px-3 py-3 font-semibold text-brand-text">
+                            {item.qrId}
+                          </td>
+                          <td className="px-3 py-3">
+                            <QRStatusBadge status={item.status} />
+                          </td>
+                          <td className="px-3 py-3 text-xs text-brand-text/75">
+                            {formatDateTime(item.createdAt)}
+                          </td>
+                          <td className="px-3 py-3 text-xs text-brand-text/75">
+                            {formatDateTime(item.registeredAt)}
+                          </td>
+                          <td className="rounded-r-xl px-3 py-3">
+                            <div className="flex flex-wrap justify-end gap-2">
                               <button
                                 type="button"
-                                onClick={() => handleDisableQr(item.qrId)}
-                                disabled={isDisabling === item.qrId}
-                                className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-semibold text-rose-700 transition hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-70"
+                                onClick={() => setSelectedQrId(item.qrId)}
+                                className="rounded-lg border border-brand-secondary/45 bg-white px-3 py-2 text-xs font-semibold text-brand-primary transition hover:bg-brand-secondary/15"
                               >
-                                {isDisabling === item.qrId ? 'Desactivando...' : 'Desactivar'}
+                                Ver QR
                               </button>
-                            ) : null}
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                              <button
+                                type="button"
+                                onClick={() => handleCopyUrl(item.qrId)}
+                                className="rounded-lg border border-brand-secondary/45 bg-white px-3 py-2 text-xs font-semibold text-brand-primary transition hover:bg-brand-secondary/15"
+                              >
+                                {copyState.qrId === item.qrId && copyState.status === 'copied'
+                                  ? 'Copiado'
+                                  : copyState.qrId === item.qrId && copyState.status === 'error'
+                                    ? 'Error'
+                                    : 'Copiar URL'}
+                              </button>
+
+                              {item.status === 'available' ? (
+                                <button
+                                  type="button"
+                                  onClick={() => handleDisableQr(item.qrId)}
+                                  disabled={isStatusUpdating === item.qrId}
+                                  className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-semibold text-rose-700 transition hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-70"
+                                >
+                                  {isStatusUpdating === item.qrId ? 'Procesando...' : 'Desactivar'}
+                                </button>
+                              ) : null}
+
+                              {item.status === 'disabled' ? (
+                                <button
+                                  type="button"
+                                  onClick={() => handleEnableQr(item.qrId)}
+                                  disabled={isStatusUpdating === item.qrId}
+                                  className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-70"
+                                >
+                                  {isStatusUpdating === item.qrId ? 'Procesando...' : 'Activar'}
+                                </button>
+                              ) : null}
+
+                              {item.status === 'registered' ? (
+                                <span className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-600">
+                                  Gestion bloqueada
+                                </span>
+                              ) : null}
+
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteQr(item)}
+                                disabled={isDeleting === item.qrId}
+                                className="rounded-lg border border-brand-secondary/45 bg-white px-3 py-2 text-xs font-semibold text-brand-primary transition hover:bg-brand-secondary/15 disabled:cursor-not-allowed disabled:opacity-70"
+                              >
+                                {isDeleting === item.qrId ? 'Eliminando...' : 'Eliminar'}
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={setCurrentPage}
+                />
+              </>
             ) : null}
           </article>
         </section>

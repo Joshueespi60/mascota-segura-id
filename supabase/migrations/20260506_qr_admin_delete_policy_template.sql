@@ -1,0 +1,33 @@
+﻿-- 20260506_qr_admin_delete_policy_template.sql
+-- Template de politicas RLS para gestion administrativa de qr_codes.
+--
+-- IMPORTANTE:
+-- 1) Este archivo NO aplica cambios automaticamente en este proyecto.
+-- 2) Revisar primero su modelo real de Supabase Auth/roles.
+-- 3) Ejecutar de forma manual solo cuando ya exista un criterio admin robusto.
+--
+-- Ejemplo sugerido (no aplicar sin revisar):
+--
+-- alter table public.qr_codes enable row level security;
+--
+-- create policy "qr_codes_public_read"
+--   on public.qr_codes
+--   for select
+--   to anon, authenticated
+--   using (true);
+--
+-- create policy "qr_codes_admin_write"
+--   on public.qr_codes
+--   for all
+--   to authenticated
+--   using ((auth.jwt() ->> 'app_role') = 'admin')
+--   with check ((auth.jwt() ->> 'app_role') = 'admin');
+--
+-- create policy "mascotas_admin_delete"
+--   on public.mascotas
+--   for delete
+--   to authenticated
+--   using ((auth.jwt() ->> 'app_role') = 'admin');
+--
+-- Nota:
+-- Si su proyecto usa otro claim (ej: role, user_role, is_admin) ajuste la condicion.
