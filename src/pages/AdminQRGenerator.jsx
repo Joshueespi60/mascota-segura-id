@@ -370,12 +370,12 @@ function AdminQRGenerator() {
     try {
       clearInventoryMessage()
       setIsUnlinking(item.qrId)
-      const result = await unlinkPetFromQr(item.qrId)
+      const updatedQr = await unlinkPetFromQr(item.qrId)
 
       setQrCodes((current) =>
-        current.map((code) => (code.qrId === item.qrId ? result.qrCode : code)),
+        current.map((code) => (code.qrId === item.qrId ? updatedQr : code)),
       )
-      setSuccessMessage(result.message || `QR ${item.qrId} desvinculado correctamente.`)
+      setSuccessMessage(`Mascota desvinculada y QR ${item.qrId} liberado correctamente.`)
     } catch (error) {
       setErrorMessage(
         error instanceof Error
