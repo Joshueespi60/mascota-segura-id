@@ -1,4 +1,5 @@
 import ContactButtons from './ContactButtons'
+import PetLocationMap from './PetLocationMap'
 
 function DetailItem({ label, value }) {
   return (
@@ -59,6 +60,8 @@ function PetPublicCard({ pet }) {
         </section>
 
         <ContactButtons nombreMascota={pet.nombre} telefono={pet.telefono} />
+
+        <PetLocationMap />
       </div>
     </article>
   )

@@ -2,6 +2,7 @@ import { supabase } from './supabaseClient'
 import { generateQrId, normalizeQrId } from '../utils/qrId'
 
 const MAX_QR_GENERATION_ATTEMPTS = 12
+const PET_PHOTOS_BUCKET = 'pet-photos'
 
 function isDuplicateQrError(error) {
   if (!error) {
@@ -41,6 +42,75 @@ function toFriendlyDeleteError(error) {
   }
 
   return 'No se pudo eliminar el codigo QR. Intenta nuevamente.'
+}
+
+function extractStoragePathFromPhotoUrl(fotoUrl) {
+  if (typeof fotoUrl !== 'string') {
+    return null
+  }
+
+  const trimmedUrl = fotoUrl.trim()
+  if (!trimmedUrl) {
+    return null
+  }
+
+  if (!/^https?:\/\//i.test(trimmedUrl)) {
+    return trimmedUrl.replace(/^\/+/, '')
+  }
+
+  const storagePathPrefixes = [
+    `/storage/v1/object/public/${PET_PHOTOS_BUCKET}/`,
+    `/storage/v1/object/sign/${PET_PHOTOS_BUCKET}/`,
+    `/storage/v1/render/image/public/${PET_PHOTOS_BUCKET}/`,
+    `/object/public/${PET_PHOTOS_BUCKET}/`,
+    `/object/sign/${PET_PHOTOS_BUCKET}/`,
+    `/render/image/public/${PET_PHOTOS_BUCKET}/`,
+  ]
+
+  try {
+    const parsed = new URL(trimmedUrl)
+    const pathName = decodeURIComponent(parsed.pathname || '')
+
+    for (const prefix of storagePathPrefixes) {
+      const prefixIndex = pathName.indexOf(prefix)
+      if (prefixIndex === -1) {
+        continue
+      }
+
+      const relativePath = pathName.slice(prefixIndex + prefix.length).replace(/^\/+/, '')
+      return relativePath || null
+    }
+  } catch {
+    return null
+  }
+
+  return null
+}
+
+async function removePetPhotoIfPossible(fotoUrl) {
+  const imagePath = extractStoragePathFromPhotoUrl(fotoUrl)
+  if (!imagePath) {
+    return {
+      attempted: false,
+      removed: false,
+      reason: 'path_not_resolved',
+    }
+  }
+
+  const { error } = await supabase.storage.from(PET_PHOTOS_BUCKET).remove([imagePath])
+  if (error) {
+    return {
+      attempted: true,
+      removed: false,
+      reason: 'delete_failed',
+    }
+  }
+
+  return {
+    attempted: true,
+    removed: true,
+    reason: 'deleted',
+  }
 }
 
 export function generateUniqueQrId() {
@@ -240,4 +310,81 @@ export async function deleteQrCode(qrId) {
   }
 
   return true
+}
+
+export async function unlinkPetFromQr(qrId) {
+  const normalizedQrId = normalizeQrId(qrId)
+  if (!normalizedQrId) {
+    throw new Error('El codigo QR no es valido.')
+  }
+
+  const qrCode = await getQrCodeById(normalizedQrId)
+  if (!qrCode) {
+    throw new Error('No se encontro el codigo QR indicado.')
+  }
+
+  if (qrCode.status !== 'registered') {
+    throw new Error('Este QR no esta registrado actualmente.')
+  }
+
+  const { data: petRow, error: findPetError } = await supabase
+    .from('mascotas')
+    .select('id, qr_id, foto_url')
+    .eq('qr_id', qrCode.qrId)
+    .maybeSingle()
+
+  if (findPetError) {
+    throw new Error('No se pudo buscar la mascota asociada a este QR.')
+  }
+
+  if (!petRow?.id) {
+    throw new Error('No se encontro una mascota asociada a este QR.')
+  }
+
+  const { data: deletedPet, error: deletePetError } = await supabase
+    .from('mascotas')
+    .delete()
+    .eq('id', petRow.id)
+    .select('id')
+    .maybeSingle()
+
+  if (deletePetError) {
+    if (deletePetError.code === '42501') {
+      throw new Error('No se pudo eliminar la mascota. Revisa permisos de Supabase/RLS.')
+    }
+
+    throw new Error('No se pudo eliminar la mascota asociada a este QR.')
+  }
+
+  if (!deletedPet?.id) {
+    throw new Error('No se pudo eliminar la mascota. Revisa permisos de Supabase/RLS.')
+  }
+
+  const photoCleanup = await removePetPhotoIfPossible(petRow.foto_url)
+
+  const { data: releasedQrRow, error: releaseQrError } = await supabase
+    .from('qr_codes')
+    .update({
+      status: 'available',
+      registered_at: null,
+      disabled_at: null,
+    })
+    .eq('qr_id', qrCode.qrId)
+    .select('*')
+    .maybeSingle()
+
+  if (releaseQrError) {
+    throw new Error('La mascota se elimino, pero no se pudo liberar el QR. Revisa permisos de Supabase/RLS.')
+  }
+
+  if (!releasedQrRow) {
+    throw new Error('La mascota se elimino, pero no se pudo confirmar la liberacion del QR.')
+  }
+
+  return {
+    message: 'Mascota desvinculada y QR liberado correctamente.',
+    qrCode: mapQrCodeRow(releasedQrRow),
+    removedPetId: deletedPet.id,
+    photoCleanup,
+  }
 }
