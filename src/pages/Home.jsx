@@ -1,15 +1,25 @@
 import { Link } from 'react-router'
 import mascotaLogo from '../assets/mascota-logo.png'
 
-function Home() {
+function Home({ qrId, isQrEntry = false }) {
+  const registerPath =
+    isQrEntry && qrId ? `/qr/${encodeURIComponent(qrId)}/registro` : '/registro'
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-brand-bg via-[#fffdf9] to-brand-accent/25">
       <main className="mx-auto flex min-h-screen max-w-6xl items-center px-6 py-14 sm:px-10 lg:px-16">
         <section className="grid w-full gap-10 lg:grid-cols-2 lg:items-center">
           <div className="space-y-6 text-center lg:text-left">
-            <span className="inline-flex items-center rounded-full border border-brand-secondary/45 bg-brand-bg px-4 py-1 text-sm font-semibold text-brand-primary">
-              MascotaSegura ID
-            </span>
+            <div className="flex flex-wrap items-center justify-center gap-3 lg:justify-start">
+              <span className="inline-flex items-center rounded-full border border-brand-secondary/45 bg-brand-bg px-4 py-1 text-sm font-semibold text-brand-primary">
+                MascotaSegura ID
+              </span>
+              {isQrEntry && qrId ? (
+                <span className="inline-flex items-center rounded-full border border-brand-secondary/45 bg-white px-4 py-1 text-xs font-semibold uppercase tracking-wide text-brand-primary">
+                  Collar {qrId}
+                </span>
+              ) : null}
+            </div>
             <div className="space-y-3">
               <h1 className="text-4xl font-extrabold tracking-tight text-brand-text sm:text-5xl">
                 Encuentra. Protege. Conecta.
@@ -21,7 +31,7 @@ function Home() {
               </p>
             </div>
             <Link
-              to="/registro"
+              to={registerPath}
               className="inline-flex items-center justify-center rounded-xl bg-brand-primary px-6 py-3 text-base font-semibold text-white shadow-lg shadow-brand-primary/30 transition hover:-translate-y-0.5 hover:bg-[#A24F30] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-primary"
             >
               Registrar mascota

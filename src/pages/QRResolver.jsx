@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router'
 import PetPublicCard from '../components/PetPublicCard'
 import QRStatusBadge from '../components/QRStatusBadge'
-import QRWelcome from './QRWelcome'
+import Home from './Home'
 import { getPetByQrId } from '../services/petService'
 import { getQrCodeById } from '../services/qrService'
 import { normalizeQrId } from '../utils/qrId'
@@ -116,6 +116,10 @@ function QRResolver() {
     )
   }
 
+  if (view === 'available') {
+    return <Home qrId={collarLabel} isQrEntry />
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-brand-bg via-[#fffdf9] to-brand-accent/25 px-4 py-8 sm:px-6">
       <main className="mx-auto w-full max-w-3xl">
@@ -130,10 +134,6 @@ function QRResolver() {
             Collar {collarLabel}
           </span>
         </div>
-
-        {view === 'available' ? (
-          <QRWelcome qrId={collarLabel} status={qrCode?.status} />
-        ) : null}
 
         {view === 'registered' && pet ? (
           <>
