@@ -1,9 +1,15 @@
 ﻿import { useState } from 'react'
 import { QRCodeSVG } from 'qrcode.react'
+import { normalizeQrId } from '../utils/qrId'
 
 function QRCodeBox({ pet }) {
   const [copyState, setCopyState] = useState('idle')
-  const publicUrl = `${window.location.origin}/mascota/${pet.id}`
+
+  const normalizedQrId = normalizeQrId(pet.qrId)
+  const publicPath = normalizedQrId
+    ? `/qr/${encodeURIComponent(normalizedQrId)}`
+    : `/mascota/${pet.id}`
+  const publicUrl = `${window.location.origin}${publicPath}`
 
   const handleCopyLink = async () => {
     try {
@@ -43,7 +49,7 @@ function QRCodeBox({ pet }) {
         />
       </div>
       <p className="mt-4 text-center text-sm leading-relaxed text-brand-text/75">
-        Escanea este código para ver el perfil público de la mascota.
+        Escanea este código para abrir el perfil público de la mascota.
       </p>
       <p className="mt-2 break-all text-center text-xs text-brand-text/60">{publicUrl}</p>
       <div className="mt-4 flex justify-center">

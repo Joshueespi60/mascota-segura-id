@@ -1,15 +1,19 @@
 ﻿import { useState } from 'react'
 import { useNavigate } from 'react-router'
 import { emptyPet } from '../data/demoPet'
-import { createPet } from '../services/petService'
+import { createPet, createPetWithQr } from '../services/petService'
+import { normalizeQrId } from '../utils/qrId'
 
-function PetForm() {
+function PetForm({ qrId = '' }) {
   const navigate = useNavigate()
   const [formData, setFormData] = useState(() => ({ ...emptyPet }))
   const [imageFile, setImageFile] = useState(null)
   const [photoName, setPhotoName] = useState('')
   const [errorMessage, setErrorMessage] = useState('')
   const [isSaving, setIsSaving] = useState(false)
+
+  const normalizedQrId = normalizeQrId(qrId)
+  const isQrFlow = Boolean(normalizedQrId)
 
   const updateField = (field) => (event) => {
     setFormData((prev) => ({
@@ -58,8 +62,14 @@ function PetForm() {
     try {
       setIsSaving(true)
       setErrorMessage('')
-      const createdPet = await createPet(payload, imageFile)
-      navigate(`/mascota/${createdPet.id}`)
+
+      if (isQrFlow) {
+        await createPetWithQr(payload, imageFile, normalizedQrId)
+        navigate(`/qr/${encodeURIComponent(normalizedQrId)}`, { replace: true })
+      } else {
+        const createdPet = await createPet(payload, imageFile)
+        navigate(`/mascota/${createdPet.id}`)
+      }
     } catch (error) {
       setErrorMessage(
         error instanceof Error
@@ -73,6 +83,15 @@ function PetForm() {
 
   return (
     <form className="space-y-5" onSubmit={handleSubmit}>
+      {isQrFlow ? (
+        <div className="rounded-2xl border border-brand-secondary/35 bg-brand-bg px-4 py-3 text-sm text-brand-text/85">
+          <p className="font-semibold text-brand-primary">Registro por collar</p>
+          <p className="mt-1">
+            Registra la mascota vinculada a este collar ({normalizedQrId}).
+          </p>
+        </div>
+      ) : null}
+
       <div className="space-y-2">
         <label
           htmlFor="pet-photo"
@@ -196,10 +215,15 @@ function PetForm() {
         disabled={isSaving}
         className="w-full rounded-xl bg-brand-primary px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-brand-primary/30 transition hover:bg-[#A24F30] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-primary disabled:cursor-not-allowed disabled:bg-brand-secondary sm:w-auto"
       >
-        {isSaving ? 'Guardando...' : 'Guardar y ver página pública'}
+        {isSaving
+          ? 'Guardando...'
+          : isQrFlow
+            ? 'Registrar mascota en este collar'
+            : 'Guardar y ver página pública'}
       </button>
     </form>
   )
 }
 
 export default PetForm
+
